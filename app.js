@@ -4,7 +4,9 @@ const contentURL = `https://api.hnpwa.com/v0/item/@id.json`
 
 const root = document.querySelector('.root')
 const content = document.createElement('div')
-
+const store = {
+    currentPage : 1,
+}
 function network(url){
     ajax.open('GET',url,false);
     ajax.send();
@@ -13,28 +15,42 @@ function network(url){
 function getNewsList(){
     const newsFeed = network(newsURL)
     const newsList = []
-    newsList.push('<ul>')
-    for(let i=0;i<10;i++){
+    let template = `
+    <div>
+        <h1>Hacker News</h1>
+        <ul>
+            {{__news_feed__}}
+        </ul>
+        <div>
+            <a href="#/page/{{__prev_page__}}">이전페이지</a>
+            <a href="#/page/{{__next_page__}}">다음페이지</a>
+        </div>
+    </div>
+    `
+    
+    for(let i=(store.currentPage - 1)*10;i<store.currentPage * 10;i++){
         newsList.push(
         `
         <li>
-        <a href="#${newsFeed[i].id}">
+        <a href="#/show/${newsFeed[i].id}">
         ${newsFeed[i].title} (${newsFeed[i].comments_count})
         </a>
         `)
     }
-    newsList.push('</ul>')
-    root.innerHTML = newsList.join('')
+    template = template.replace('{{__news_feed__}}',newsList.join(''))
+    template = template.replace('{{__prev_page__}}',store.currentPage ===1 ? store.currentPage : store.currentPage - 1)
+    template = template.replace('{{__next_page__}}',store.currentPage ===3 ? store.currentPage : store.currentPage + 1)
+
+    root.innerHTML = template
 }
 
-
 function getNewsPage(){
-    const id = location.hash.slice(1)
+    const id = location.hash.slice(7)
     const newsContent = network(contentURL.replace('@id',id))
     root.innerHTML=`
     <h1>${newsContent.title}</h1>
     <div>
-    <a href="#">목록으로</a>
+    <a href="#/page/${store.currentPage}">목록으로</a>
     </div>
     `;
 }
@@ -42,10 +58,12 @@ function router (){
     const routeCode = location.hash
     if(routeCode === ''){
         getNewsList()
-    }else {
+    }else if(routeCode.indexOf('#/page/') >= 0){
+        store.currentPage = +routeCode.slice(7)
+        getNewsList()
+    }else{
         getNewsPage()
     }
-     
 }
 window.addEventListener('hashchange',router)
 

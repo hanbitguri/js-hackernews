@@ -26,7 +26,7 @@ function getNewsList(){
     newsList.push('</ul>')
     root.innerHTML = newsList.join('')
 }
-getNewsList()
+
 
 function getNewsPage(){
     const id = location.hash.slice(1)
@@ -34,13 +34,22 @@ function getNewsPage(){
     root.innerHTML=`
     <h1>${newsContent.title}</h1>
     <div>
-    <a href="/">목록으로</a>
+    <a href="#">목록으로</a>
     </div>
     `;
 }
+function router (){
+    const routeCode = location.hash
+    if(routeCode === ''){
+        getNewsList()
+    }else {
+        getNewsPage()
+    }
+     
+}
+window.addEventListener('hashchange',router)
 
-window.addEventListener('hashchange',getNewsPage)
-
+router()
 
 
 

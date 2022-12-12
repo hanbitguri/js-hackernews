@@ -16,7 +16,7 @@ function getNewsList(){
     const newsFeed = network(newsURL)
     const newsList = []
     let template = `
-    <div>
+    <div class="container">
         <h1>Hacker News</h1>
         <ul>
             {{__news_feed__}}
@@ -47,12 +47,31 @@ function getNewsList(){
 function getNewsPage(){
     const id = location.hash.slice(7)
     const newsContent = network(contentURL.replace('@id',id))
-    root.innerHTML=`
-    <h1>${newsContent.title}</h1>
-    <div>
+    let template = `
+    <div>${newsContent.title}</div>
+    <div class="news-content">${newsContent.content}</div>
+    <div>{{__comments__}}</div>
     <a href="#/page/${store.currentPage}">목록으로</a>
-    </div>
-    `;
+    `
+    function readComment(comments,called = 0){
+        const commentString =[];
+        for ( let i =0 ; i< comments.length;i++){
+            commentString.push(`
+                <div class='comment' style="padding-left:${called*20}px">
+                ${comments[i].user}
+                ${comments[i].content}
+                </div>
+            `)
+            if(comments[i].comments.length > 0 ){
+                commentString.push(readComment(comments[i].comments,called + 1))
+                
+                
+            }
+        }
+        return commentString.join('')
+    }
+    
+    root.innerHTML=template.replace('{{__comments__}}',readComment(newsContent.comments))
 }
 function router (){
     const routeCode = location.hash

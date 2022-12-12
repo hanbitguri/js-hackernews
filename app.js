@@ -6,6 +6,7 @@ const root = document.querySelector('.root')
 const content = document.createElement('div')
 const store = {
     currentPage : 1,
+    feeds:[],
 }
 function network(url){
     ajax.open('GET',url,false);
@@ -13,7 +14,10 @@ function network(url){
     return JSON.parse(ajax.response)
 }
 function getNewsList(){
-    const newsFeed = network(newsURL)
+    let newsFeed = store.feeds;
+    if(newsFeed.length === 0 ){
+        newsFeed = store.feeds = makeFeed(network(newsURL))
+    }
     const newsList = []
     let template = `
     <div class="container">
@@ -33,7 +37,7 @@ function getNewsList(){
         `
         <li>
         <a href="#/show/${newsFeed[i].id}">
-        ${newsFeed[i].title} (${newsFeed[i].comments_count})
+        ${newsFeed[i].title} (${newsFeed[i].comments_count}) ${newsFeed[i].read ? '읽음':'안읽음'}
         </a>
         `)
     }
@@ -42,6 +46,12 @@ function getNewsList(){
     template = template.replace('{{__next_page__}}',store.currentPage ===3 ? store.currentPage : store.currentPage + 1)
 
     root.innerHTML = template
+}
+function makeFeed(feeds){
+    for(let i = 0; i<feeds.length ; i++){
+        feeds[i].read = false;
+    }
+    return feeds;
 }
 
 function getNewsPage(){
@@ -53,6 +63,12 @@ function getNewsPage(){
     <div>{{__comments__}}</div>
     <a href="#/page/${store.currentPage}">목록으로</a>
     `
+    for( let i = 0; i< store.feeds.length; i++){
+        if (store.feeds[i].id === +id){
+            store.feeds[i].read = true;
+            break;
+        }
+    }
     function readComment(comments,called = 0){
         const commentString =[];
         for ( let i =0 ; i< comments.length;i++){
@@ -82,6 +98,7 @@ function router (){
         getNewsList()
     }else{
         getNewsPage()
+
     }
 }
 window.addEventListener('hashchange',router)

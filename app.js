@@ -2,19 +2,21 @@ const ajax = new XMLHttpRequest();
 const newsURL = 'https://api.hnpwa.com/v0/news/1.json'
 const contentURL = `https://api.hnpwa.com/v0/item/@id.json`
 const content = document.createElement('div')
-ajax.open('GET',newsURL,false);
-ajax.send();
 
-const newsFeed = JSON.parse(ajax.response)
+function network(url){
+    ajax.open('GET',url,false);
+    ajax.send();
+    return JSON.parse(ajax.response)
+}
+const newsFeed = network(newsURL)
 
 const root = document.querySelector('.root')
 const ul = document.createElement('ul')
 
 window.addEventListener('hashchange',()=>{
     const id = location.hash.slice(1)
-    ajax.open('GET',contentURL.replace('@id',id),false);
-    ajax.send();
-    const newsContent = JSON.parse(ajax.response)
+    const newsContent = network(contentURL.replace('@id',id))
+    
     root.innerHTML=''
     const title = document.createElement('h1')
     title.innerHTML=newsContent.title
